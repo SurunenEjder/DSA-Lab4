@@ -45,35 +45,49 @@ docker compose logs grpc-service
 curl http://localhost:5000/items
 ```
 
-2. Load Testing:
+## Load Testing
+
+Generate traffic to see metrics in action:
+
 ```bash
-# Success requests
+# Generate successful requests
 while true; do curl http://localhost:5000/items; sleep 0.5; done
 
-# Error requests
+# Generate error requests
 while true; do curl http://localhost:5000/nonexistent; sleep 2; done
 ```
 
-### Monitoring
+## Observability & Monitoring
 
-1. Prometheus UI:
-- Access: http://localhost:9090
-- Check targets: http://localhost:9090/targets
+This project includes a complete monitoring stack with Prometheus, Grafana, and custom metrics.
 
-2. Grafana Dashboard:
-- Access: http://localhost:3000
-- Default credentials:
-  - Username: admin
-  - Password: admin
+### Architecture
+- **REST Service** (Flask) - Port 5000
+- **gRPC Service** - Port 50051  
+- **MongoDB** - Port 27017
+- **Prometheus** - Port 9090
+- **Grafana** - Port 3000
 
 ### Metrics Endpoints
-```bash
-# REST service metrics
-curl http://localhost:5000/metrics
+- REST Service metrics: `http://localhost:5000/metrics`
+- gRPC Service metrics: `http://localhost:9103/metrics`
 
-# gRPC service metrics
-curl http://localhost:9103/metrics
-```
+### Grafana Dashboard
+Access the monitoring dashboard at `http://localhost:3000`
+- Username: `admin`
+- Password: `admin`
+
+**Dashboard Features:**
+- **Request Rate**: Real-time request rates for both REST and gRPC services
+- **Error Rate**: HTTP error percentage tracking
+- **Latency Histogram**: Separate latency visualization for REST endpoints and gRPC methods
+- **Service Health**: Container health monitoring
+
+### Key Metrics Tracked
+- HTTP request duration and count by endpoint
+- gRPC method latency and request count
+- Error rates and status codes
+- Database connection health
 
 ### Cleanup
 ```bash
@@ -89,15 +103,18 @@ docker compose down
 - Circuit breaker implemented in REST service
 - Health checks configured for all services
 
-### Troubleshooting
-If services fail to start:
+## Troubleshooting
+
+### Check Service Health
 ```bash
-docker compose down
-docker compose build --no-cache
-docker compose up -d
+docker compose ps
+curl http://localhost:9090/targets  # Prometheus targets
+curl http://localhost:5000/health   # REST service health
 ```
 
-Check container logs:
+### View Logs
 ```bash
-docker compose logs -f
+docker compose logs -f rest-service
+docker compose logs -f grpc-service
 ```
+
